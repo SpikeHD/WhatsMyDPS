@@ -129,7 +129,9 @@ function wmd:OnDamageHit(target, amount, source, _dealer)
       source == 0 or
       -- This accounts for things like brimstone, which is... you guessed it, a laser
       -- This will also count other lasers that do not come from Isaac, but we will just have to live with it
-      source == DamageFlag.DAMAGE_LASER
+      source == DamageFlag.DAMAGE_LASER or
+      -- Account for explosions. Also counts explosions from other sources, but again, we will just have to live with it
+      source == DamageFlag.DAMAGE_EXPLOSION
     ) and -- If the player caused the damage
     target:IsActiveEnemy() and -- If the target entity is an enemy NPC
     not target:IsInvincible() then
