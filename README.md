@@ -5,9 +5,9 @@ DPS meter mod for TBoI: Repentance. Based very loosely on an [old mod](https://s
 Download from the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3093631959).
 
 # TODO
-- [ ] Make text translucent (and maybe smaller?)
-- [ ] Config options
-  - [ ] Toggle whether DPS shows in stat sidebar or above isaac
+- [x] Make text translucent (and maybe smaller?)
+- [x] Config options
+  - [x] Toggle whether DPS shows in stat sidebar or above isaac
 - [ ] Maybe make brimstone and bomb stuff better?
 
 # Contributing
