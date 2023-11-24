@@ -29,7 +29,12 @@ function wmd:Reset()
 end
 
 function wmd:OnDamageHit(target, amount, source, _dealer) 
-  if source == 0 and -- If the player caused the damage
+  if (
+      source == 0 or
+      -- This accounts for things like brimstone, which is... you guessed it, a laser
+      -- This will also count other lasers that do not come from Isaac, but we will just have to live with it
+      source == DamageFlag.DAMAGE_LASER
+    ) and -- If the player caused the damage
     target:IsActiveEnemy() and -- If the target entity is an enemy NPC
     not target:IsInvincible() then
     totalDamage = ToFixed(totalDamage + amount, 2)
