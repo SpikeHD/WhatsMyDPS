@@ -5,6 +5,102 @@ local totalDamage = 0
 local frames = 0
 local seconds = 0
 
+local settings = {
+  showDPSAboveIsaac = true,
+  showDPSInStats = true,
+  showAdditionalStats = true,
+  hudOpacity = 0.4
+}
+
+local function setupMenuSettings()
+  if ModConfigMenu == nil then
+    return
+  end
+
+  -- Config options:
+  -- "Show DPS Above Isaac"
+  -- "Show DPS in stats side area"
+  -- "Show additional stats in bottom left"
+  ModConfigMenu.AddSetting(
+    "What's My DPS?",
+    nil,
+    {
+      Type = ModConfigMenu.OptionType.BOOLEAN,
+      CurrentSetting = function()
+        return settings.showDPSAboveIsaac
+      end,
+      Display = function()
+        return "Show DPS Above Isaac: " .. (settings.showDPSAboveIsaac and "on" or "off")
+      end,
+      OnChange = function(currentBool)
+        settings.showDPSAboveIsaac = currentBool
+        SaveSettings()
+      end,
+      Info = nil
+    }
+  )
+
+  ModConfigMenu.AddSetting(
+    "What's My DPS?",
+    nil,
+    {
+      Type = ModConfigMenu.OptionType.BOOLEAN,
+      CurrentSetting = function()
+        return settings.showDPSInStats
+      end,
+      Display = function()
+        return "Show DPS in stats side area: " .. (settings.showDPSInStats and "on" or "off")
+      end,
+      OnChange = function(currentBool)
+        settings.showDPSInStats = currentBool
+        SaveSettings()
+      end,
+      Info = nil
+    }
+  )
+
+  ModConfigMenu.AddSetting(
+    "What's My DPS?",
+    nil,
+    {
+      Type = ModConfigMenu.OptionType.BOOLEAN,
+      CurrentSetting = function()
+        return settings.showAdditionalStats
+      end,
+      Display = function()
+        return "Show additional stats in bottom left: " .. (settings.showAdditionalStats and "on" or "off")
+      end,
+      OnChange = function(currentBool)
+        settings.showAdditionalStats = currentBool
+        SaveSettings()
+      end,
+      Info = nil
+    }
+  )
+end
+
+function LoadSettings()
+  local str = Isaac.LoadModData(wmd)
+
+  if str == nil then
+    str = "111" -- All on by default
+  end
+
+  settings.showDPSAboveIsaac = str:sub(1, 1) == "1"
+  settings.showDPSInStats = str:sub(2, 2) == "1"
+  settings.showAdditionalStats = str:sub(3, 3) == "1"
+end
+
+function SaveSettings()
+  local str = ""
+
+  str = str .. (settings.showDPSAboveIsaac and "1" or "0")
+  str = str .. (settings.showDPSInStats and "1" or "0")
+  str = str .. (settings.showAdditionalStats and "1" or "0")
+
+  Isaac.SaveModData(wmd, str)
+end
+
 function ToFixed(num, idp)
   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
 end
@@ -41,15 +137,17 @@ function wmd:OnDamageHit(target, amount, source, _dealer)
   end
 end
 
--- Get the number to subtract from the G and B values (255 max), base on damage passed in
+-- Get the number to subtract from the G and B values (1 is the max, the range is 0 - 1)
 function GetColorSubtraction(damage)
-  -- Damage range is from 10 to 100, so we need to scale that to the 0 - 255 range
-  local damageRange = 100 - 10
-  local colorRange = 255
-  local damageRatio = damage / damageRange
-  local colorSubtraction = colorRange * damageRatio
+  -- Scale a damage range of 10 - 100 to a color range of 0 - 1
+  local colorSub = (damage - 10) / 90
 
-  return colorSubtraction
+  -- If the damage is less than 10, just return 0
+  if colorSub < 0 then
+    return 0
+  end
+
+  return colorSub
 end
 
 -- Get actual DPS
@@ -85,8 +183,10 @@ function wmd:Render()
   font:Load("font/pftempestasevencondensed.fnt")
 
   -- Draw to the top left of the screen (based on screen size)
-  font:DrawString("Total Damage: " .. totalDamage, 20, screenSize.Y - 20, KColor(255, 255, 255, 255))
-  font:DrawString("Functional DPS: " .. functionalDPS, 20,  screenSize.Y - 30, KColor(255, 255 - fDPSColorSub, 255 - fDPSColorSub, 255))
+  if settings.showAdditionalStats then
+    font:DrawStringScaled("Total Damage: " .. totalDamage, 26, screenSize.Y - 20, 0.8, 0.8, KColor(1, 1, 1, settings.hudOpacity))
+    font:DrawStringScaled("Functional DPS: " .. functionalDPS, 26,  screenSize.Y - 30, 0.8, 0.8, KColor(1, 1 - fDPSColorSub, 1 - fDPSColorSub, settings.hudOpacity))
+  end
 
   -- Draw the DPS on top of isaac's head
   local p = Isaac.GetPlayer(0).Position
@@ -94,8 +194,16 @@ function wmd:Render()
   local px = room:WorldToScreenPosition(p).X
   local py = room:WorldToScreenPosition(p).Y
 
-  -- px - 8 is stupid idk why I need to do that
-  font:DrawString(tostring(dps), px - 10, py - 40, KColor(255, 255 - dpsColorSub, 255 - dpsColorSub, 255), 20, true)
+  if settings.showDPSAboveIsaac then
+    -- px - 10 is stupid idk why I need to do that
+    font:DrawString(tostring(dps), px - 10, py - 40, KColor(1, 1 - dpsColorSub, 1 - dpsColorSub, settings.hudOpacity), 20, true)
+  end
+
+  if settings.showDPSInStats then
+    -- Draw the DPS in the stats side area
+    local miniCoords = Vector(26, 214)
+    font:DrawStringScaled("DPS: " .. tostring(dps), miniCoords.X, miniCoords.Y, 0.8, 0.8, KColor(1, 1 - dpsColorSub, 1 - dpsColorSub, settings.hudOpacity))
+  end
 end
 
 wmd:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, wmd.OnDamageHit)
@@ -103,3 +211,6 @@ wmd:AddCallback(ModCallbacks.MC_POST_RENDER, wmd.Render)
 wmd:AddCallback(ModCallbacks.MC_POST_RENDER, wmd.Timer)
 wmd:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, wmd.Reset)
 wmd:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, wmd.Reset)
+
+LoadSettings()
+setupMenuSettings()
