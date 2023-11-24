@@ -1,4 +1,4 @@
-local wmd = RegisterMod("Whats My Damage?", 1)
+local wmd = RegisterMod("Whats My DPS?", 1)
 
 local screenSize
 local totalDamage = 0
