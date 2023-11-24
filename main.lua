@@ -82,7 +82,15 @@ function wmd:Render()
   -- Draw to the top left of the screen (based on screen size)
   font:DrawString("Total Damage: " .. totalDamage, 20, screenSize.Y - 20, KColor(255, 255, 255, 255))
   font:DrawString("Functional DPS: " .. functionalDPS, 20,  screenSize.Y - 30, KColor(255, 255 - fDPSColorSub, 255 - fDPSColorSub, 255))
-  font:DrawString("DPS: " .. dps, 20,  screenSize.Y - 40, KColor(255, 255 - dpsColorSub, 255 - dpsColorSub, 255))
+
+  -- Draw the DPS on top of isaac's head
+  local p = Isaac.GetPlayer(0).Position
+  local room = Game():GetRoom()
+  local px = room:WorldToScreenPosition(p).X
+  local py = room:WorldToScreenPosition(p).Y
+
+  -- px - 8 is stupid idk why I need to do that
+  font:DrawString(tostring(dps), px - 10, py - 40, KColor(255, 255 - dpsColorSub, 255 - dpsColorSub, 255), 20, true)
 end
 
 wmd:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, wmd.OnDamageHit)
