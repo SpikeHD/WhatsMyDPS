@@ -58,10 +58,11 @@ end
 
 -- This function calculates the players "functional" DPS based on their Damage and Fire Rate stat. This does NOT account for things like poison, bomb damage, etc.
 function FunctionalDPS()
-  local firedelay = Isaac.GetPlayer(0).MaxFireDelay
+  -- This is not the fire rate, but rather the delay in between each shot. The lower the number, the faster the fire rate
+  local firedelay = 30 / (Isaac.GetPlayer(0).MaxFireDelay + 1)
   local damage = Isaac.GetPlayer(0).Damage
 
-  return ToFixed(damage * (5 / firedelay), 2)
+  return ToFixed(damage * firedelay, 2)
 end
 
 function wmd:Render()
@@ -74,15 +75,14 @@ function wmd:Render()
   local dpsColorSub = GetColorSubtraction(dps)
   local fDPSColorSub = GetColorSubtraction(functionalDPS)
 
-  -- Draw to the bottom left of the screen (based on screen size)
-  Isaac.RenderText("Total Damage: " .. totalDamage, 10, screenSize.Y - 60, 255, 255, 255, 255)
-  Isaac.RenderText("Functional DPS: " .. functionalDPS, 10, screenSize.Y - 40, 255, 255 - fDPSColorSub, 255 - fDPSColorSub, 255)
-  Isaac.RenderText("DPS: " .. dps, 10, screenSize.Y - 20, 255, 255 - dpsColorSub, 255 - dpsColorSub, 255)
+  -- Create smaller font
+  local font = Font()
+  font:Load("font/pftempestasevencondensed.fnt")
 
-  -- Also (for debugging) print the DPS
-  print("DPS: " .. dps)
-  print("Functional DPS: " .. functionalDPS)
-  print("Total Damage: " .. totalDamage)
+  -- Draw to the top left of the screen (based on screen size)
+  font:DrawString("Total Damage: " .. totalDamage, 20, screenSize.Y - 20, KColor(255, 255, 255, 255))
+  font:DrawString("Functional DPS: " .. functionalDPS, 20,  screenSize.Y - 30, KColor(255, 255 - fDPSColorSub, 255 - fDPSColorSub, 255))
+  font:DrawString("DPS: " .. dps, 20,  screenSize.Y - 40, KColor(255, 255 - dpsColorSub, 255 - dpsColorSub, 255))
 end
 
 wmd:AddCallback(ModCallbacks.MC_ENTITY_TAKE_DMG, wmd.OnDamageHit)
