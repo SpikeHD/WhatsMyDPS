@@ -9,6 +9,7 @@ Download from the [Steam Workshop](https://steamcommunity.com/sharedfiles/filede
 - [x] Config options
   - [x] Toggle whether DPS shows in stat sidebar or above isaac
 - [ ] Maybe make brimstone and bomb stuff better?
+- [ ] Fix mirror rooms
 
 # Contributing
 Issues, PRs, etc. all welcome!
